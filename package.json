@@ -1,0 +1,35 @@
+{
+  "name": "apps.do",
+  "version": "0.1.0",
+  "description": "Application definitions and metadata in MDX format",
+  "type": "module",
+  "scripts": {
+    "build": "velite",
+    "dev": "velite --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "keywords": [
+    "mdx",
+    "velite",
+    "zod",
+    "applications",
+    "schema-validation"
+  ],
+  "dependencies": {
+    "velite": "^0.1.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dot-do/apps.git"
+  },
+  "author": "dot-do",
+  "license": "MIT"
+}
