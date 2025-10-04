@@ -1,0 +1,128 @@
+---
+title: SaaS.Studio
+$type: Application
+category: SaaS-Builder
+name: SaaS.Studio
+description: No-code SaaS builder platform - Generate complete SaaS applications from natural language with AI
+domain: saas.studio
+url: https://saas.studio
+techStack:
+  - Payload CMS
+  - Next.js
+  - TypeScript
+  - PostgreSQL
+  - Cloudflare Workers
+  - OpenAI
+
+payload:
+  collections:
+    projects:
+      slug: projects
+      fields:
+        - name: name
+          type: text
+          required: true
+        - name: description
+          type: richText
+        - name: owner
+          type: relationship
+          relationTo: users
+        - name: template
+          type: select
+          options: [crm, erp, marketplace, ecommerce, saas-platform]
+        - name: features
+          type: array
+          fields:
+            - name: feature
+              type: relationship
+              relationTo: features
+        - name: modules
+          type: array
+          fields:
+            - name: module
+              type: relationship
+              relationTo: modules
+        - name: deploymentUrl
+          type: text
+        - name: status
+          type: select
+          options: [draft, generating, deployed, active]
+
+    features:
+      slug: features
+      fields:
+        - name: name
+          type: text
+        - name: category
+          type: select
+          options: [auth, payments, notifications, analytics, api]
+        - name: aiGenerated
+          type: checkbox
+        - name: code
+          type: json
+
+    modules:
+      slug: modules
+      fields:
+        - name: name
+          type: text
+        - name: routes
+          type: array
+        - name: components
+          type: json
+        - name: apiEndpoints
+          type: json
+
+features:
+  aiGeneration:
+    enabled: true
+    description: Generate complete SaaS from natural language
+
+  templates:
+    count: 50+
+    types: [CRM, ERP, Marketplace, E-commerce, SaaS Platform]
+
+  deployment:
+    provider: Cloudflare
+    automatic: true
+
+pricing:
+  free:
+    projects: 3
+    features: basic
+    deployment: true
+
+  pro:
+    price: 99
+    period: /month
+    projects: unlimited
+    features: all
+    customDomains: true
+
+seo:
+  title: SaaS.Studio - No-Code SaaS Builder with AI
+  description: Generate complete SaaS applications from natural language. Deploy in minutes. 50+ templates.
+---
+
+# SaaS.Studio
+
+**From idea to SaaS in 48 hours.**
+
+Describe your SaaS idea in natural language, AI generates complete application with auth, payments, and database.
+
+## How It Works
+
+1. **Describe** your SaaS idea
+2. **Generate** with AI (features, database, UI)
+3. **Deploy** to production automatically
+
+## Features
+
+- **AI Generation** - Complete SaaS from description
+- **50+ Templates** - CRM, ERP, Marketplace, more
+- **Auto-Deploy** - Cloudflare Workers
+- **Full Stack** - Backend + Frontend + Database
+
+---
+
+**SaaS.Studio** - Build SaaS at AI speed.

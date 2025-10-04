@@ -9,8 +9,10 @@ const apps = defineCollection({
     description: s.string(),
     platform: s.enum(['web', 'mobile', 'desktop', 'cli', 'api']).optional(),
     url: s.string().url().optional(),
-    type: s.string().optional(), // e.g., 'SaaS', 'marketplace', 'productivity'
+    type: s.string().optional(), // e.g., 'SaaS', 'marketplace', 'productivity', 'CMS'
     techStack: s.array(s.string()).default([]),
+    collections: s.array(s.string()).default([]), // Database collections this app manages
+    basepath: s.string().default('/admin'), // URL path prefix (e.g., '/' or '/admin')
     features: s.array(s.string()).default([]),
     metadata: s.object({
       ns: s.string().default('app'),

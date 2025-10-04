@@ -1,0 +1,787 @@
+---
+title: Services.Studio
+$type: Application
+category: Marketplace
+name: Services.Studio
+description: AI + Human services marketplace - Design, price, and sell outcome-based services with Stripe for Platforms
+
+payload:
+  collections:
+    nouns:
+      slug: nouns
+      fields:
+        - name: name
+          type: text
+          required: true
+          unique: true
+        - name: plural
+          type: text
+          required: true
+        - name: description
+          type: textarea
+        - name: schema
+          type: json
+          required: true
+        - name: examples
+          type: array
+          fields:
+            - name: example
+              type: text
+        - name: category
+          type: select
+          options: [business, technical, creative, data, document]
+      hooks:
+        - event: beforeCreate
+          handler: generateSchema
+
+    verbs:
+      slug: verbs
+      fields:
+        - name: action
+          type: text
+          required: true
+          unique: true
+        - name: pastTense
+          type: text
+        - name: description
+          type: textarea
+        - name: inputNouns
+          type: relationship
+          relationTo: nouns
+          hasMany: true
+        - name: outputNouns
+          type: relationship
+          relationTo: nouns
+          hasMany: true
+        - name: aiCapable
+          type: checkbox
+          defaultValue: false
+        - name: humanRequired
+          type: checkbox
+          defaultValue: true
+      hooks:
+        - event: beforeCreate
+          handler: analyzeCapability
+
+    triggers:
+      slug: triggers
+      fields:
+        - name: name
+          type: text
+          required: true
+        - name: type
+          type: select
+          options: [webhook, schedule, manual, event]
+          required: true
+        - name: configuration
+          type: json
+        - name: services
+          type: relationship
+          relationTo: services
+          hasMany: true
+
+    searches:
+      slug: searches
+      fields:
+        - name: query
+          type: text
+          required: true
+        - name: source
+          type: select
+          options: [database, api, web, ai]
+          required: true
+        - name: filters
+          type: json
+        - name: resultSchema
+          type: json
+
+    actions:
+      slug: actions
+      fields:
+        - name: name
+          type: text
+          required: true
+        - name: verb
+          type: relationship
+          relationTo: verbs
+          required: true
+        - name: inputNoun
+          type: relationship
+          relationTo: nouns
+        - name: outputNoun
+          type: relationship
+          relationTo: nouns
+        - name: implementation
+          type: select
+          options: [ai, human, hybrid, code]
+          required: true
+        - name: estimatedTime
+          type: number
+        - name: costPerExecution
+          type: number
+
+    services:
+      slug: services
+      admin:
+        useAsTitle: name
+      fields:
+        - name: name
+          type: text
+          required: true
+        - name: slug
+          type: text
+          unique: true
+        - name: description
+          type: richText
+          required: true
+        - name: provider
+          type: relationship
+          relationTo: users
+          required: true
+        - name: pricing
+          type: group
+          fields:
+            - name: model
+              type: select
+              options: [fixed, hourly, outcome, subscription]
+              required: true
+            - name: amount
+              type: number
+              required: true
+            - name: currency
+              type: select
+              options: [USD, EUR, GBP]
+              defaultValue: USD
+        - name: workflow
+          type: array
+          fields:
+            - name: step
+              type: text
+            - name: action
+              type: relationship
+              relationTo: actions
+            - name: automated
+              type: checkbox
+        - name: deliveryTime
+          type: number
+          required: true
+        - name: revisions
+          type: number
+          defaultValue: 2
+        - name: status
+          type: select
+          options: [draft, active, paused, archived]
+          defaultValue: draft
+        - name: stripeProductId
+          type: text
+        - name: stripePriceId
+          type: text
+      hooks:
+        - event: beforeChange
+          handler: generateSlug
+        - event: afterCreate
+          handler: createStripeProduct
+        - event: afterChange
+          handler: syncStripe
+
+    orders:
+      slug: orders
+      fields:
+        - name: service
+          type: relationship
+          relationTo: services
+          required: true
+        - name: customer
+          type: relationship
+          relationTo: users
+          required: true
+        - name: provider
+          type: relationship
+          relationTo: users
+          required: true
+        - name: status
+          type: select
+          options: [pending, in_progress, in_review, completed, cancelled]
+          defaultValue: pending
+        - name: inputs
+          type: json
+        - name: outputs
+          type: json
+        - name: deliverables
+          type: array
+          fields:
+            - name: file
+              type: upload
+              relationTo: media
+            - name: description
+              type: textarea
+        - name: payment
+          type: group
+          fields:
+            - name: amount
+              type: number
+            - name: stripePaymentIntentId
+              type: text
+            - name: status
+              type: select
+              options: [pending, paid, refunded]
+            - name: paidAt
+              type: date
+        - name: feedback
+          type: group
+          fields:
+            - name: rating
+              type: number
+              min: 1
+              max: 5
+            - name: comment
+              type: textarea
+      hooks:
+        - event: afterCreate
+          handler: createPaymentIntent
+        - event: afterChange
+          handler: handleStatusChange
+        - event: afterChange
+          handler: releasePayment
+
+routes:
+  - pattern: /
+    page: home
+    template: marketplace-landing
+    components:
+      - <AI><Hero context="Services.Studio marketplace" /></AI>
+      - <ServiceCategories />
+      - <FeaturedProviders />
+      - <HowItWorks />
+
+  - pattern: /services/browse
+    collection: services
+    page: browse
+    filters:
+      - category
+      - pricing.model
+      - deliveryTime
+    components:
+      - <ServiceGrid services={services} />
+      - <FilterSidebar />
+
+  - pattern: /services/[slug]
+    collection: services
+    page: service-detail
+    variables:
+      - name
+      - description
+      - provider
+      - pricing
+      - workflow
+      - deliveryTime
+    components:
+      - <AI><ServiceHero service={service} /></AI>
+      - <WorkflowVisualization steps={workflow} />
+      - <PricingCard pricing={pricing} />
+      - <ProviderProfile provider={provider} />
+      - <OrderForm service={service} />
+
+  - pattern: /services/create
+    page: service-designer
+    auth: required
+    components:
+      - <ServiceDesigner nouns={nouns} verbs={verbs} actions={actions} />
+      - <WorkflowBuilder />
+      - <PricingCalculator />
+
+  - pattern: /orders/[id]
+    collection: orders
+    page: order-detail
+    auth: required
+    variables:
+      - service
+      - customer
+      - provider
+      - status
+      - deliverables
+      - payment
+    components:
+      - <OrderHeader order={order} />
+      - <OrderTimeline status={status} />
+      - <Deliverables items={deliverables} />
+      - <PaymentStatus payment={payment} />
+
+integrations:
+  payment:
+    provider: stripe-connect
+    features: [checkout, escrow, payouts, invoices]
+
+  ai:
+    providers: [openai, anthropic]
+    features: [generation, classification, extraction]
+
+features:
+  serviceDesigner:
+    enabled: true
+    ai: true
+    visual: true
+    templates: 50+
+
+  escrowPayment:
+    enabled: true
+    holdPeriod: 7 days
+    feeStructure: 10%
+
+  aiAssisted:
+    enabled: true
+    capabilities:
+      - Service generation
+      - Workflow automation
+      - Quality checking
+      - Delivery optimization
+
+pricing:
+  platform:
+    fee: 10%
+    stripe: 2.9% + $0.30
+    payout: instant
+
+seo:
+  title: Services.Studio - Design & Sell AI-Powered Services
+  description: Create outcome-based services powered by AI and human expertise. Get paid for results, not hours.
+
+analytics:
+  events:
+    - service_created
+    - service_viewed
+    - order_placed
+    - order_completed
+    - payout_received
+---
+
+# Services.Studio
+
+Design, price, and sell outcome-based services powered by AI + Human expertise. Stripe for Platforms integration with escrow payments.
+
+## Core Concept
+
+**Services = Nouns + Verbs + Actions**
+
+- **Nouns** - Business entities (Invoice, Report, Video, Website)
+- **Verbs** - Actions performed (Create, Analyze, Optimize, Transform)
+- **Actions** - Implementation (AI, Human, Hybrid, Code)
+- **Triggers** - When to start (Webhook, Schedule, Manual, Event)
+- **Searches** - Find relevant data (Database, API, Web, AI)
+
+## Service Designer
+
+### Visual Workflow Builder
+
+```yaml
+Service: AI Business Report Generator
+
+Nouns:
+  - Input: Business Data (revenue, expenses, metrics)
+  - Output: Executive Report (PDF with charts and insights)
+
+Verbs:
+  - Analyze: AI analysis of financial trends
+  - Generate: Create visualizations and narrative
+  - Review: Human expert review and refinement
+
+Workflow:
+  1. Trigger: Manual upload or API webhook
+  2. Search: Fetch historical data from database
+  3. Action: AI analyzes trends (automated)
+  4. Action: Generate charts and insights (automated)
+  5. Action: Human expert review (manual)
+  6. Action: Final delivery to customer (automated)
+
+Pricing:
+  Model: Per-report
+  Amount: $299
+  Delivery: 48 hours
+  Revisions: 2 included
+```
+
+## AI-Enhanced Components
+
+```mdx
+<AI>
+  <ServiceRecommendations
+    context={userProfile + browsingHistory}
+    generate={["services", "providers", "pricing"]}
+  />
+</AI>
+```
+
+The AI analyzes:
+- User needs and goals
+- Budget and timeline
+- Past orders
+- Provider ratings
+
+## Dynamic Routes
+
+### Service Detail: `/services/[slug]/`
+
+```yaml
+variables:
+  name: AI Business Report Generator
+  provider: {name: "Expert Analytics", rating: 4.8}
+  pricing: {model: "outcome", amount: 299}
+  deliveryTime: 48 hours
+  workflow: [analyze, generate, review, deliver]
+```
+
+Page includes:
+- Service overview with AI-generated highlights
+- Visual workflow diagram
+- Pricing breakdown
+- Provider profile with ratings
+- Sample deliverables
+- Order form with customization options
+
+## Implementation
+
+```typescript
+import type { BusinessModule } from 'graphdl'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+interface Noun {
+  id: string
+  name: string
+  plural: string
+  schema: object
+  category: string
+}
+
+interface Verb {
+  id: string
+  action: string
+  inputNouns: string[]
+  outputNouns: string[]
+  aiCapable: boolean
+  humanRequired: boolean
+}
+
+interface Action {
+  id: string
+  name: string
+  verb: string
+  inputNoun: string
+  outputNoun: string
+  implementation: 'ai' | 'human' | 'hybrid' | 'code'
+  estimatedTime: number
+  costPerExecution: number
+}
+
+interface Service {
+  id: string
+  name: string
+  slug: string
+  provider: string
+  pricing: {
+    model: 'fixed' | 'hourly' | 'outcome' | 'subscription'
+    amount: number
+    currency: string
+  }
+  workflow: { step: string; action: string; automated: boolean }[]
+  deliveryTime: number
+  status: string
+  stripeProductId?: string
+  stripePriceId?: string
+}
+
+interface Order {
+  id: string
+  service: string
+  customer: string
+  provider: string
+  status: 'pending' | 'in_progress' | 'in_review' | 'completed' | 'cancelled'
+  inputs: object
+  outputs?: object
+  payment: {
+    amount: number
+    stripePaymentIntentId: string
+    status: 'pending' | 'paid' | 'refunded'
+  }
+}
+
+/**
+ * Services.Studio - AI + Human Services Marketplace
+ *
+ * Key Innovation: Services composed from primitives
+ * - Nouns (entities)
+ * - Verbs (actions)
+ * - Actions (implementations)
+ * - Triggers (when to start)
+ * - Searches (data sources)
+ */
+export const ServicesStudio: BusinessModule = $ => {
+  const { db, ai, api, send, on, decide } = $
+
+  const hooks = {
+    generateSchema: async (args) => {
+      const { data } = args
+
+      // AI-powered schema generation
+      const schema = await ai.generate({
+        prompt: `Generate JSON schema for entity: ${data.name}
+          Description: ${data.description}
+          Examples: ${data.examples.join(', ')}
+
+          Return valid JSON Schema with properties, types, and validation rules.`,
+        maxTokens: 500,
+        format: 'json',
+      })
+
+      data.schema = schema
+      return data
+    },
+
+    analyzeCapability: async (args) => {
+      const { data } = args
+
+      // AI determines if task can be automated
+      const analysis = await ai.classify(
+        `Can "${data.action}" be performed by AI? Consider complexity, creativity, and current AI capabilities.`,
+        ['fully-automated', 'human-required', 'hybrid-recommended']
+      )
+
+      data.aiCapable = analysis === 'fully-automated'
+      data.humanRequired = analysis === 'human-required'
+
+      return data
+    },
+
+    generateSlug: async (args) => {
+      const { data } = args
+      if (!data.slug) {
+        data.slug = data.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+      }
+      return data
+    },
+
+    createStripeProduct: async (args) => {
+      const { doc } = args
+
+      // Create Stripe product
+      const product = await stripe.products.create({
+        name: doc.name,
+        description: doc.description,
+        metadata: {
+          serviceId: doc.id,
+          providerId: doc.provider,
+        },
+      })
+
+      // Create price
+      const price = await stripe.prices.create({
+        product: product.id,
+        unit_amount: Math.round(doc.pricing.amount * 100),
+        currency: doc.pricing.currency.toLowerCase(),
+        billing_scheme: doc.pricing.model === 'subscription' ? 'recurring' : 'one_time',
+        recurring: doc.pricing.model === 'subscription' ? { interval: 'month' } : undefined,
+      })
+
+      await db.services.update(doc.id, {
+        stripeProductId: product.id,
+        stripePriceId: price.id,
+      })
+    },
+
+    syncStripe: async (args) => {
+      const { doc, previousDoc } = args
+
+      // Update Stripe product if changed
+      if (doc.name !== previousDoc.name || doc.description !== previousDoc.description) {
+        await stripe.products.update(doc.stripeProductId, {
+          name: doc.name,
+          description: doc.description,
+        })
+      }
+
+      // Update price if changed
+      if (doc.pricing.amount !== previousDoc.pricing.amount) {
+        await stripe.prices.update(doc.stripePriceId, {
+          active: false,
+        })
+
+        const newPrice = await stripe.prices.create({
+          product: doc.stripeProductId,
+          unit_amount: Math.round(doc.pricing.amount * 100),
+          currency: doc.pricing.currency.toLowerCase(),
+        })
+
+        await db.services.update(doc.id, {
+          stripePriceId: newPrice.id,
+        })
+      }
+    },
+
+    createPaymentIntent: async (args) => {
+      const { doc } = args
+
+      const service = await db.services.findById(doc.service)
+      const provider = await db.users.findById(doc.provider)
+
+      // Calculate platform fee (10%)
+      const platformFee = Math.round(service.pricing.amount * 0.1 * 100)
+
+      // Create payment intent with Stripe Connect
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(service.pricing.amount * 100),
+        currency: service.pricing.currency.toLowerCase(),
+        application_fee_amount: platformFee,
+        transfer_data: {
+          destination: provider.stripeAccountId,
+        },
+        metadata: {
+          orderId: doc.id,
+          serviceId: service.id,
+        },
+      })
+
+      await db.orders.update(doc.id, {
+        'payment.stripePaymentIntentId': paymentIntent.id,
+      })
+
+      // Send confirmation to customer
+      const customer = await db.users.findById(doc.customer)
+      await send.email(customer.email, `Order Confirmation: ${service.name}`, {
+        template: 'order-created',
+        data: {
+          service,
+          order: doc,
+          paymentUrl: `https://services.studio/orders/${doc.id}/pay`,
+        },
+      })
+    },
+
+    handleStatusChange: async (args) => {
+      const { doc, previousDoc } = args
+
+      if (doc.status === previousDoc.status) return
+
+      const service = await db.services.findById(doc.service)
+      const customer = await db.users.findById(doc.customer)
+      const provider = await db.users.findById(doc.provider)
+
+      decide
+        .switch(doc.status)
+        .case('in_progress', async () => {
+          await send.email(customer.email, `Work started on ${service.name}`, {
+            template: 'order-in-progress',
+            data: { service, order: doc },
+          })
+        })
+        .case('in_review', async () => {
+          await send.email(customer.email, `${service.name} ready for review`, {
+            template: 'order-review',
+            data: { service, order: doc, reviewUrl: `https://services.studio/orders/${doc.id}/review` },
+          })
+        })
+        .case('completed', async () => {
+          await send.email(customer.email, `${service.name} completed!`, {
+            template: 'order-completed',
+            data: { service, order: doc },
+          })
+
+          // Request feedback
+          setTimeout(async () => {
+            await send.email(customer.email, `How was your experience?`, {
+              template: 'feedback-request',
+              data: { service, order: doc, feedbackUrl: `https://services.studio/orders/${doc.id}/feedback` },
+            })
+          }, 24 * 60 * 60 * 1000) // 24 hours later
+        })
+    },
+
+    releasePayment: async (args) => {
+      const { doc, previousDoc } = args
+
+      // Release payment when order completed
+      if (doc.status === 'completed' && previousDoc.status !== 'completed') {
+        const paymentIntent = await stripe.paymentIntents.retrieve(doc.payment.stripePaymentIntentId)
+
+        if (paymentIntent.status === 'requires_capture') {
+          await stripe.paymentIntents.capture(paymentIntent.id)
+        }
+
+        await db.orders.update(doc.id, {
+          'payment.status': 'paid',
+          'payment.paidAt': new Date(),
+        })
+
+        const provider = await db.users.findById(doc.provider)
+        await send.email(provider.email, 'Payment released', {
+          template: 'payment-released',
+          data: { order: doc },
+        })
+      }
+    },
+  }
+
+  // Service creation with AI assistance
+  on.service.created(async (data: { nouns: string[]; verbs: string[]; description: string; provider: string }) => {
+    // AI generates service details
+    const details = await ai.extract({
+      prompt: `Create a service based on:
+        Nouns: ${data.nouns.join(', ')}
+        Verbs: ${data.verbs.join(', ')}
+        Description: ${data.description}
+
+        Generate: name, detailed description, workflow steps, pricing recommendation, delivery time.`,
+      schema: {
+        name: 'string',
+        description: 'string',
+        workflow: 'array<{step: string, automated: boolean}>',
+        suggestedPrice: 'number',
+        estimatedTime: 'number',
+      },
+    })
+
+    return await db.services.create({
+      ...details,
+      provider: data.provider,
+      pricing: {
+        model: 'outcome',
+        amount: details.suggestedPrice,
+        currency: 'USD',
+      },
+      deliveryTime: details.estimatedTime,
+      status: 'draft',
+    })
+  })
+
+  return { hooks }
+}
+```
+
+## Use Cases
+
+### For Service Providers
+- Design services visually
+- Automate with AI where possible
+- Get paid for outcomes
+- Build service portfolio
+
+### For Customers
+- Browse outcome-based services
+- Pay only for results
+- Track delivery progress
+- Protected payments with escrow
+
+### For Platforms
+- Enable service marketplaces
+- 10% platform fee
+- Automated payouts
+- Built-in compliance
+
+## Related
+
+- [[Services.Delivery]] - Deliver services (supply side)
+- [[Builder.Domains]] - Get domains for your services
+- [[Sell.Headless.ly]] - CRM for service providers

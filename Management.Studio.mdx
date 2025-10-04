@@ -1,0 +1,76 @@
+---
+title: Management.Studio
+$type: Application
+category: Business-Management
+name: Management.Studio
+description: All-in-one business management - Projects, tasks, clients, invoices, documents, team collaboration
+domain: management.studio
+url: https://management.studio
+
+payload:
+  collections:
+    projects:
+      slug: projects
+      fields:
+        - name: name
+          type: text
+        - name: client
+          type: relationship
+          relationTo: clients
+        - name: status
+          type: select
+          options: [planning, active, completed]
+
+    tasks:
+      slug: tasks
+      fields:
+        - name: title
+          type: text
+        - name: project
+          type: relationship
+          relationTo: projects
+        - name: assignee
+          type: relationship
+          relationTo: users
+
+    clients:
+      slug: clients
+      fields:
+        - name: name
+          type: text
+        - name: contact
+          type: email
+
+    invoices:
+      slug: invoices
+      fields:
+        - name: number
+          type: text
+        - name: client
+          type: relationship
+          relationTo: clients
+        - name: amount
+          type: number
+
+features:
+  projectManagement: Gantt charts, timelines
+  crm: Client relationships
+  invoicing: Professional invoices
+  documents: Collaboration
+
+pricing:
+  free: 1 business, 5 users
+  pro: $29/mo - Unlimited
+  business: $99/mo - Advanced features
+
+seo:
+  title: Management.Studio - One Platform for Your Business
+---
+
+# Management.Studio
+
+**One platform for your entire business.**
+
+---
+
+**Management.Studio** - Simplify operations.

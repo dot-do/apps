@@ -1,0 +1,74 @@
+---
+title: Startups.Studio
+$type: Application
+category: Accelerator
+name: Startups.Studio
+description: Startup accelerator platform - Application management, mentor matching, investor connections, pitch tracking
+domain: startups.studio
+url: https://startups.studio
+
+payload:
+  collections:
+    startups:
+      slug: startups
+      fields:
+        - name: name
+          type: text
+        - name: description
+          type: richText
+        - name: founders
+          type: array
+        - name: stage
+          type: select
+          options: [idea, mvp, launch, growth, scale]
+        - name: metrics
+          type: json
+
+    founders:
+      slug: founders
+      fields:
+        - name: name
+          type: text
+        - name: linkedin
+          type: text
+        - name: experience
+          type: richText
+
+    mentors:
+      slug: mentors
+      fields:
+        - name: name
+          type: text
+        - name: expertise
+          type: array
+
+    investors:
+      slug: investors
+      fields:
+        - name: name
+          type: text
+        - name: fundSize
+          type: number
+
+features:
+  application: Streamlined application process
+  mentorship: AI-powered mentor matching
+  pitching: Pitch deck builder
+  funding: Investor connections
+
+pricing:
+  startups: Free for accepted startups
+  mentors: Free for mentors
+  investors: $999/month for investor access
+
+seo:
+  title: Startups.Studio - Your Unfair Advantage
+---
+
+# Startups.Studio
+
+**Your unfair advantage from day one.**
+
+---
+
+**Startups.Studio** - Where startups become unicorns.

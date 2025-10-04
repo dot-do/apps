@@ -1,0 +1,55 @@
+---
+title: App.net.AI
+$type: Application
+category: AI-Generator
+name: App.net.AI
+description: AI-generated application factory - Natural language to production apps with component library and auto-deploy
+domain: app.net.ai
+url: https://app.net.ai
+
+payload:
+  collections:
+    appRequests:
+      slug: app-requests
+      fields:
+        - name: description
+          type: textarea
+        - name: user
+          type: relationship
+          relationTo: users
+        - name: status
+          type: select
+          options: [pending, generating, deployed]
+
+    generatedApps:
+      slug: generated-apps
+      fields:
+        - name: name
+          type: text
+        - name: components
+          type: json
+        - name: deploymentUrl
+          type: text
+
+features:
+  aiGeneration: Natural language to production apps
+  componentLibrary: Pre-built UI components
+  autoDeploy: Cloudflare Workers
+  feedback: Continuous improvement
+
+pricing:
+  free: 3 apps, basic features
+  pro: $49/mo - Unlimited apps
+  business: $299/mo - Custom components
+
+seo:
+  title: App.net.AI - AI Builds Your App
+---
+
+# App.net.AI
+
+**AI builds your app, you build your business.**
+
+---
+
+**App.net.AI** - Apps at AI speed.
