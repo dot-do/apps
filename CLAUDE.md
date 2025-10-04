@@ -318,6 +318,6 @@ Located in `api` project at `src/routes/webhooks/github.ts`.
 
 ---
 
-**Last Updated**: 2025-10-02
+**Last Updated**: 2025-10-03
 **Maintained By**: Claude Code
 **Repository**: https://github.com/dot-do/apps
