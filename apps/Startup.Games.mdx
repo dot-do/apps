@@ -1,0 +1,416 @@
+---
+title: Startup.Games
+$type: Application
+category: Gamification
+name: Startup.Games
+description: Gamified platform for founders to compete in challenges, win prizes, credits, and funding opportunities
+domain: startup.games
+url: https://startup.games
+
+payload:
+  collections:
+    players:
+      slug: players
+      fields:
+        - name: username
+          type: text
+          required: true
+        - name: level
+          type: number
+          default: 1
+        - name: xp
+          type: number
+          default: 0
+        - name: totalXP
+          type: number
+          default: 0
+        - name: achievements
+          type: array
+        - name: activeChallenges
+          type: json
+        - name: completedChallenges
+          type: json
+        - name: startup
+          type: relationship
+          relationTo: startups
+        - name: leaderboardRank
+          type: number
+
+    quests:
+      slug: quests
+      fields:
+        - name: title
+          type: text
+        - name: description
+          type: richText
+        - name: type
+          type: select
+          options: [daily, weekly, monthly, special]
+        - name: difficulty
+          type: select
+          options: [starter, intermediate, advanced, legendary]
+        - name: xpReward
+          type: number
+        - name: prizePool
+          type: json
+        - name: requirements
+          type: json
+        - name: deadline
+          type: date
+        - name: active
+          type: checkbox
+          default: true
+
+    achievements:
+      slug: achievements
+      fields:
+        - name: name
+          type: text
+        - name: description
+          type: text
+        - name: icon
+          type: text
+        - name: rarity
+          type: select
+          options: [common, rare, epic, legendary]
+        - name: requirements
+          type: json
+        - name: reward
+          type: json
+
+    leaderboards:
+      slug: leaderboards
+      fields:
+        - name: type
+          type: select
+          options: [global, regional, category, weekly, monthly, allTime]
+        - name: period
+          type: text
+        - name: rankings
+          type: json
+        - name: lastUpdated
+          type: date
+
+    prizes:
+      slug: prizes
+      fields:
+        - name: name
+          type: text
+        - name: description
+          type: richText
+        - name: value
+          type: number
+        - name: type
+          type: select
+          options: [credits, funding, mentorship, spotlight, resource, powerup]
+        - name: sponsor
+          type: text
+        - name: available
+          type: checkbox
+
+features:
+  quests: Daily, weekly, and monthly founder challenges
+  xpSystem: Earn experience points for shipping milestones
+  leaderboards: Global, regional, and category rankings
+  achievements: Unlock badges for specific accomplishments
+  bossbattles: Quarterly pitch competitions with investor prizes
+  powerups: Credits, API access, and mentorship sessions
+  lootdrops: Random rewards for completing challenges
+  community: Connect with other founders in-game
+  integration: Seamless connection with Startups.Studio
+
+gamification:
+  levels:
+    - name: Startup Newbie
+      xp: 0
+      perks: [Basic quest access, Community forum]
+    - name: Indie Hacker
+      xp: 1000
+      perks: [Weekly quests, $100 credits]
+    - name: Serial Builder
+      xp: 5000
+      perks: [Monthly quests, $500 credits, Featured spotlight]
+    - name: Unicorn Hunter
+      xp: 20000
+      perks: [Boss battles, $5K funding opportunity, 1-on-1 mentorship]
+    - name: Legendary Founder
+      xp: 100000
+      perks: [All access, $50K investment consideration, Private mastermind]
+
+  questTypes:
+    daily:
+      - Ship a feature
+      - Get 10 new users
+      - Deploy to production
+      - Close a sale
+      - Write documentation
+    weekly:
+      - Launch MVP
+      - Reach 100 users
+      - Get first revenue
+      - Ship 5 features
+      - Get featured on product hunt
+    monthly:
+      - Reach $1K MRR
+      - Launch major feature
+      - Acquire 1000 users
+      - Raise pre-seed
+      - Hit product-market fit
+    quarterly:
+      - Pitch competition
+      - Reach $10K MRR
+      - Scale to 10K users
+      - Raise seed round
+      - Exit or acquisition
+
+  prizes:
+    weekly:
+      - value: $500
+        type: credits
+        description: Platform credits + featured spotlight
+    monthly:
+      - value: $5000
+        type: funding
+        description: Startup grant + 1-on-1 mentorship session
+    quarterly:
+      - value: $50000
+        type: investment
+        description: Investment consideration from Startups.Studio
+    annual:
+      - value: $500000
+        type: fundingRound
+        description: Participation in Startups.Studio funding round
+    special:
+      - name: 1-Person Unicorn Path
+        value: unlimited
+        type: journey
+        description: Ultimate prize for the first solo founder to reach $1B valuation
+
+  powerups:
+    - name: AI Copilot Credits
+      description: 10,000 API credits for AI-powered development
+      cost: 500xp
+    - name: Design Asset Pack
+      description: Premium UI/UX components and templates
+      cost: 1000xp
+    - name: Mentor Session
+      description: 30-minute session with industry expert
+      cost: 2000xp
+    - name: Featured Spotlight
+      description: Homepage feature for 7 days
+      cost: 5000xp
+    - name: Fast Track Review
+      description: Jump the queue for Startups.Studio application
+      cost: 10000xp
+
+pricing:
+  founders: Free to play with optional power-ups
+  sponsors: Custom pricing for prize pool sponsors
+  startups_studio: Integration included with accelerator program
+
+seo:
+  title: Startup.Games - Play to Win, Ship to Succeed
+  description: Gamified platform where founders compete in challenges to win prizes, credits, and funding from Startups.Studio
+  keywords: [startup game, founder challenges, pitch competition, startup funding, gamification, indie hacker, solo founder, AI-powered startup]
+
+storyBrand:
+  hero: Solo founders and indie hackers
+  problem: Building alone is hard and lonely
+  guide: Startup.Games
+  plan: Play→Ship→Win
+  success: 1-person unicorn
+  positioning: "Where solo founders become billion-dollar companies"
+  icp: Pre-seed founders shipping daily
+  vision: "The first 1-person unicorn will emerge from this game"
+
+integration:
+  startups_studio:
+    - All accounts link to Startups.Studio profiles
+    - Top 10 leaderboard get fast-track application
+    - Achievements unlock accelerator perks
+    - Game metrics inform investment decisions
+    - Quest completion tracked in CRM
+
+  platform_ecosystem:
+    - Track deployments via Cloudflare Workers
+    - Monitor metrics via analytics APIs
+    - Award achievements automatically
+    - Sync progress across ecosystem
+---
+
+# Startup.Games
+
+**Play to Win. Ship to Succeed.**
+
+---
+
+## The Game That Creates 1-Person Unicorns
+
+Startup.Games turns building a startup into an addictive quest system. Every feature shipped, every user acquired, every dollar earned levels you up and unlocks real prizes.
+
+**The Ultimate Quest**: Be the first solo founder to build a billion-dollar company. No employees. No meetings. Just you, AI, and autonomous systems.
+
+### Why Play?
+
+**🎮 Turn Work Into Play**
+Building a startup is already hard. Make it fun with daily quests, XP systems, and achievements.
+
+**💰 Win Real Prizes**
+Compete for cash prizes, platform credits, mentorship sessions, and funding opportunities.
+
+**📈 Track Your Progress**
+Visual progress bars, level-ups, and leaderboards keep you motivated and accountable.
+
+**🤝 Join a Community**
+Connect with thousands of founders playing the same game, shipping together.
+
+**🚀 Get Discovered**
+Top performers get featured, fast-tracked for investment, and connected with mentors.
+
+---
+
+## How It Works
+
+### 1. Sign Up & Connect
+Link your Startups.Studio profile and grant access to track your progress.
+
+### 2. Accept Quests
+Choose from daily, weekly, and monthly challenges that match your goals.
+
+### 3. Ship & Earn
+Complete quests by shipping features, acquiring users, and hitting milestones.
+
+### 4. Level Up
+Earn XP, unlock achievements, climb leaderboards, and access better rewards.
+
+### 5. Win Prizes
+Collect credits, grants, mentorship, and compete for major funding rounds.
+
+---
+
+## Quest Categories
+
+### 🏃 Daily Quests
+Ship something every day. Deploy code, close deals, talk to users.
+
+**Rewards**: 10-100 XP
+
+### 📅 Weekly Quests
+Launch features, hit user milestones, generate revenue.
+
+**Rewards**: 500-1,000 XP + $100-500 credits
+
+### 📆 Monthly Quests
+Major launches, revenue milestones, significant growth.
+
+**Rewards**: 5,000 XP + $5K funding
+
+### ⚔️ Boss Battles
+Quarterly pitch competitions with live judging and massive prizes.
+
+**Rewards**: Up to $50K investment consideration
+
+---
+
+## Leaderboards
+
+Compete globally or in your region and category:
+
+- **🌍 Global**: Top founders worldwide
+- **🗺️ Regional**: Best in your area
+- **🏷️ Category**: SaaS, AI, marketplace, etc.
+- **📅 Time**: Weekly, monthly, all-time
+
+**Top 10 Perks**:
+- Featured on homepage
+- Fast-track Startups.Studio review
+- Investor introductions
+- Media coverage
+
+---
+
+## Power-Ups
+
+Spend your XP on game-changing resources:
+
+- **AI Copilot Credits**: 10K API credits
+- **Design Assets**: Premium UI kits
+- **Mentor Sessions**: 30-min expert calls
+- **Featured Spot**: 7-day homepage feature
+- **Fast Track**: Skip the application queue
+
+---
+
+## Prize Pool
+
+### Weekly Prizes
+**$500 credits** + featured spotlight
+
+### Monthly Prizes
+**$5K grant** + 1-on-1 mentorship
+
+### Quarterly Prizes
+**$50K investment consideration**
+
+### Annual Grand Prize
+**$500K funding round participation**
+
+### Ultimate Prize
+**The 1-Person Unicorn**: First solo founder to $1B valuation gets immortality in the founder hall of fame + unlimited platform access for life
+
+---
+
+## Levels & Progression
+
+| Level | XP Required | Title | Perks |
+|-------|-------------|-------|-------|
+| 1 | 0 | Startup Newbie | Basic quests |
+| 2 | 1,000 | Indie Hacker | Weekly quests + $100 |
+| 3 | 5,000 | Serial Builder | Monthly quests + $500 |
+| 4 | 20,000 | Unicorn Hunter | Boss battles + $5K |
+| 5 | 100,000 | Legendary Founder | All access + $50K |
+| ∞ | 1,000,000 | 1-Person Unicorn | Immortality |
+
+---
+
+## Integration with Startups.Studio
+
+Startup.Games is seamlessly integrated with the Startups.Studio accelerator:
+
+✅ **One Account**: Link once, play everywhere
+✅ **Automatic Tracking**: Metrics sync from your stack
+✅ **Investment Pipeline**: Top players get investor meetings
+✅ **Accelerator Perks**: Achievements unlock program benefits
+
+---
+
+## Join the Game
+
+**Ready to play?**
+
+Sign up today and start your founder journey the fun way. Every ship counts. Every milestone matters. Every win brings you closer to building something legendary.
+
+🎮 **[Start Playing →]**
+
+---
+
+## FAQ
+
+**Is it really free?**
+Yes. Playing is 100% free. Power-ups are optional purchases.
+
+**How do you track progress?**
+We integrate with your stack (GitHub, Stripe, analytics) to automatically award XP.
+
+**Can I play without Startups.Studio?**
+Yes, but linking your profile unlocks more quests and prizes.
+
+**Are prizes real?**
+Absolutely. Cash prizes, credits, and funding are all real and verified.
+
+**Can teams play?**
+Currently solo founders only, but team modes coming soon.
+
+---
+
+**Startup.Games** - Where founders become legends.
